@@ -10,7 +10,7 @@ arcpy.env.overwriteOutput = True
 
 # Input data
 # Path to your SDE connection
-sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
+sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\xxxx.sde"
 
 # Parcel centroids (feature class inside SDE)
 parcel_centroids = fr"{sde_conn}\GIS_PARCE_CENTR"
@@ -56,7 +56,7 @@ print(f"Done at {now}. Wrote: {out_fc}")
 
 
 ### Block groups------------------------------------------------------------------------------------------
-in_fc_BG = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_FEDER_BLOCK_GROUP"
+in_fc_BG = fr"{sde_conn}\xxxx.GIS_FEDER_BLOCK_GROUP"
 out_gdb  = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name_BG = "block_groups_2025"
 out_fc_BG   = os.path.join(out_gdb, out_name_BG)
@@ -90,8 +90,8 @@ print(f"Done at {now}. Wrote: {out_fc_BG}")
 
 
 ### Housing Units -------------------------------------------------------------------------------------------
-sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
-schema_tbl = "DIT_GIS_IPLS.IPLS.IPLS_CURRE_HOUSI_UNIT"
+sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\xxxx.sde"
+schema_tbl = "xxxx.IPLS_CURRE_HOUSI_UNIT"
 out_gdb   = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name  = "Housing_Units_2025"
 
