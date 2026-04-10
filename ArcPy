@@ -1,0 +1,263 @@
+# ArcGIS Pro Jupyter Notebook
+import arcpy
+import pandas as pd
+import os
+from datetime import datetime
+
+# Set workspace
+arcpy.env.workspace = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+arcpy.env.overwriteOutput = True
+
+# Input data
+# Path to your SDE connection
+sde_conn = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
+
+# Parcel centroids (feature class inside SDE)
+parcel_centroids = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_PARCE_CENTR"
+# Housing units table
+housing_units_table = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.IPLS_CURRE_HOUSI_UNIT"
+# Block groups
+block_groups = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_FEDER_BLOCK_GROUP"
+
+
+# --- Paths ---
+in_fc    = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_PARCE_CENTR"
+
+out_gdb  = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_name = "Parcel_Centroids_2025"
+out_fc   = os.path.join(out_gdb, out_name)
+
+arcpy.env.overwriteOutput = True
+
+# --- Choose your filter field/value ---
+YEAR_FIELD = "VALID_TO"   # <-- CHANGE to your actual year field name
+YEAR_VALUE = 2025
+
+# ---- Build a filter (WHERE clause) ----
+# If VALID_TO is a DATE field in SQL Server, use a range of dates:
+where_clause = f"{YEAR_FIELD} > '2024-12-31' AND {YEAR_FIELD} <= '2025-01-01'"
+
+# --- Export filtered features to your FGDB ---
+arcpy.FeatureClassToFeatureClass_conversion(
+    in_features=in_fc,
+    out_path=out_gdb,
+    out_name=out_name,
+    where_clause=where_clause
+)
+
+print(f"Done. Wrote: {out_fc}")
+
+
+# Get current time
+now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# Print message with timestamp
+print(f"Done at {now}. Wrote: {out_fc}")
+
+
+### Block groups------------------------------------------------------------------------------------------
+in_fc_BG = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_FEDER_BLOCK_GROUP"
+out_gdb  = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_name_BG = "block_groups_2025"
+out_fc_BG   = os.path.join(out_gdb, out_name_BG)
+
+arcpy.env.overwriteOutput = True
+
+
+# --- Choose your filter field/value ---
+YEAR_FIELD = "VALID_TO"   # <-- CHANGE to your actual year field name
+YEAR_VALUE = 2025
+
+# ---- Build a filter (WHERE clause) ----
+# If VALID_TO is a DATE field in SQL Server, use a range of dates:
+where_clause = f"{YEAR_FIELD} > '2024-12-31' AND {YEAR_FIELD} <= '2025-01-01'"
+
+# --- Export filtered features to your FGDB ---
+arcpy.FeatureClassToFeatureClass_conversion(
+    in_features=in_fc_BG,
+    out_path=out_gdb,
+    out_name=out_name_BG,
+    where_clause=where_clause
+)
+
+
+# Get current time
+now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# Print message with timestamp
+print(f"Done at {now}. Wrote: {out_fc_BG}")
+
+
+
+### Housing Units -------------------------------------------------------------------------------------------
+sde_conn = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
+schema_tbl = "DIT_GIS_IPLS.IPLS.IPLS_CURRE_HOUSI_UNIT"
+out_gdb   = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_name  = "Housing_Units_2025"
+
+arcpy.env.overwriteOutput = True
+
+# 1) Build SQL with a synthetic OID using ROW_NUMBER()
+sql = f"""
+SELECT
+  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS OID,
+  *
+FROM {schema_tbl}
+WHERE VALID_TO > '2024-12-31' AND VALID_TO <= '2025-01-01'
+"""
+
+# 2) Make a Query Layer using the synthetic OID
+qlayer = "hu_qry_layer"
+arcpy.management.MakeQueryLayer(sde_conn, qlayer, sql, "OID")
+
+# 3) Export to GDB
+out_tbl = os.path.join(out_gdb, out_name)
+arcpy.conversion.TableToTable(qlayer, out_gdb, out_name)
+
+print(f"Done at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}. Wrote: {out_tbl}")
+
+
+
+### Add Lat and Lon to parcel centroids ------------------------------------------------------------------------------
+fc1 = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb\Parcel_Centroids_2025"
+
+arcpy.env.overwriteOutput = True
+
+# Add fields if missing
+existing = {f.name.lower() for f in arcpy.ListFields(fc1)}
+if "lon" not in existing:
+    arcpy.management.AddField(fc1, "lon", "DOUBLE")
+if "lat" not in existing:
+    arcpy.management.AddField(fc1, "lat", "DOUBLE")
+
+# Calculate longitude/latitude in NAD83 (decimal degrees)
+nad83_geo = arcpy.SpatialReference(4269)  # GCS_North_American_1983
+arcpy.management.CalculateGeometryAttributes(
+    in_features=fc1,
+    geometry_property=[["lon", "POINT_X"], ["lat", "POINT_Y"]],
+    coordinate_system=nad83_geo,
+    coordinate_format="DD"
+)
+
+print("Done. lon/lat populated in NAD83 decimal degrees.")
+
+
+
+### Join parcel centroids to housing units using PIN, keep structure of housing unit table------------------------------------
+
+gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+arcpy.env.workspace = gdb
+arcpy.env.overwriteOutput = True
+
+# Inputs
+parcel_fc   = os.path.join(gdb, "Parcel_Centroids_2025")   # feature class WITH fields: lon, lat (decimal degrees)
+housing_tbl = os.path.join(gdb, "Housing_Units_2025")      # table (no geometry; has PIN)
+
+# Join parcel coords onto housing table (keeps housing row count)
+
+# This copies lon/lat *into* the housing table by PIN
+arcpy.management.JoinField(
+    in_data=housing_tbl, 
+    in_field="PIN",
+    join_table=parcel_fc, 
+    join_field="PIN"
+    # Note: no 'fields' argument → brings ALL non-geometry fields
+)
+
+# 2) Create a point feature class from housing table using the joined lon/lat
+out_points = os.path.join(gdb, "Housing_Units_Points_2025")
+
+# Choose the coordinate system that matches lon/lat:
+# - If lon/lat are in WGS84 → use 4326
+# - If lon/lat are in NAD83 geographic → use 4269
+spref = arcpy.SpatialReference(4269)  # WGS84; change to 4269 if you calculated in NAD83
+
+arcpy.management.XYTableToPoint(
+    in_table=housing_tbl,
+    out_feature_class=out_points,
+    x_field="lon",
+    y_field="lat",
+    coordinate_system=spref
+)
+
+print(f"Done. Wrote: {out_points}")
+
+
+
+### Spatial Join using intersect ------------------------------------------------------------------------
+gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+pts = os.path.join(gdb, "Housing_Units_Points_2025")   # points
+polys = os.path.join(gdb, "block_groups_2025")       # polygons
+
+pts_with_bg = os.path.join(gdb, "Parcel_Housing_withBG_2025")
+arcpy.env.overwriteOutput = True
+
+arcpy.analysis.SpatialJoin(
+    target_features=pts,       # points
+    join_features=polys,       # polygons
+    out_feature_class=pts_with_bg,
+    join_operation="JOIN_ONE_TO_ONE",
+    join_type="KEEP_COMMON",   # keep only points that hit a BG
+    match_option="INTERSECT"   # or COMPLETELY_WITHIN, which neglect the boundary points
+)
+
+gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+fc2  = os.path.join(gdb, "Parcel_Housing_withBG_2025")
+
+# ---- List all fields you want ----
+fields = [f.name for f in arcpy.ListFields(fc2) if f.type not in ("Geometry", "Blob", "Raster")]
+
+# ---- Read rows with SearchCursor ----
+rows = [row for row in arcpy.da.SearchCursor(fc2, fields)]
+df = pd.DataFrame(rows, columns=fields)
+
+
+
+
+### Handle t speicial cases ----------------------------------------------------------------------------------
+gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+arcpy.env.workspace = gdb
+arcpy.env.overwriteOutput = True
+
+
+# Input data
+all_pts   = os.path.join(gdb, "Housing_Units_Points_2025")     # BEFORE spatial join
+final_pts = os.path.join(gdb, "Parcel_Housing_withBG_2025")    # AFTER spatial join
+
+# 1) Select the two PINs from the full points
+sel_query = "PIN IN ('0502 13  0024','0513 02  0133A')"
+arcpy.management.MakeFeatureLayer(all_pts, "exc_lyr", sel_query)
+
+# 2) Copy them to a temp feature class
+exceptions_fc = os.path.join(gdb, "Exceptions_ManualBG")
+arcpy.management.CopyFeatures("exc_lyr", exceptions_fc)
+
+# 3) Make sure CENSU_ID field exists
+if "CENSU_ID" not in [f.name for f in arcpy.ListFields(exceptions_fc)]:
+    arcpy.management.AddField(exceptions_fc, "CENSU_ID", "TEXT", field_length=12)
+
+
+# 4) Manually assign correct block group IDs
+pin_to_bg = {
+    "0502 13  0024": "510594503003",
+    "0513 02  0133A": "510594503004"
+}
+
+with arcpy.da.UpdateCursor(exceptions_fc, ["PIN", "CENSU_ID"]) as cur:
+    for row in cur:
+        if row[0] in pin_to_bg:
+            row[1] = pin_to_bg[row[0]]
+            cur.updateRow(row)
+
+# 5) Append corrected points into the final spatial join output
+arcpy.management.Append(inputs=exceptions_fc, target=final_pts, schema_type="NO_TEST")
+
+print("Done. Exceptions manually appended to Parcel_Housing_withBG_2025")
+
+# ---- Write to CSV ---- (optional)
+#out_csv = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\Parcel_Housing_withBG_2025.csv"
+#df.to_csv(out_csv, index=False)
+
+#print(f"Done. Exported {len(df)} rows to {out_csv}")
+
+
