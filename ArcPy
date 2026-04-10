@@ -214,7 +214,7 @@ df = pd.DataFrame(rows, columns=fields)
 
 
 
-### Handle t speicial cases ----------------------------------------------------------------------------------
+### Handle speicial cases ----------------------------------------------------------------------------------
 gdb = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 arcpy.env.workspace = gdb
 arcpy.env.overwriteOutput = True
@@ -225,7 +225,7 @@ all_pts   = os.path.join(gdb, "Housing_Units_Points_2025")     # BEFORE spatial 
 final_pts = os.path.join(gdb, "Parcel_Housing_withBG_2025")    # AFTER spatial join
 
 # 1) Select the two PINs from the full points
-sel_query = "PIN IN ('0502 13  0024','0513 02  0133A')"
+sel_query = "PIN IN ('xxxxxxxxxx','xxxxxxxxxxx')"
 arcpy.management.MakeFeatureLayer(all_pts, "exc_lyr", sel_query)
 
 # 2) Copy them to a temp feature class
@@ -239,8 +239,8 @@ if "CENSU_ID" not in [f.name for f in arcpy.ListFields(exceptions_fc)]:
 
 # 4) Manually assign correct block group IDs
 pin_to_bg = {
-    "0502 13  0024": "510594503003",
-    "0513 02  0133A": "510594503004"
+    "xxxxxxxxx": "xxxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx": "xxxxxxxxxxxxxxxx"
 }
 
 with arcpy.da.UpdateCursor(exceptions_fc, ["PIN", "CENSU_ID"]) as cur:
