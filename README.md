@@ -1,5 +1,4 @@
-# Housing_Unit_Comparison
-# Spatial Data Processing Workflow
+# Housing Unit Spatial Data Processing Workflow
 
 ## Overview
 
