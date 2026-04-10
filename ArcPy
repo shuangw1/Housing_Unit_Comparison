@@ -5,25 +5,25 @@ import os
 from datetime import datetime
 
 # Set workspace
-arcpy.env.workspace = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+arcpy.env.workspace = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 arcpy.env.overwriteOutput = True
 
 # Input data
 # Path to your SDE connection
-sde_conn = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
+sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
 
 # Parcel centroids (feature class inside SDE)
-parcel_centroids = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_PARCE_CENTR"
+parcel_centroids = fr"{sde_conn}\GIS_PARCE_CENTR"
 # Housing units table
-housing_units_table = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.IPLS_CURRE_HOUSI_UNIT"
+housing_units_table = fr"{sde_conn}\IPLS_CURRE_HOUSI_UNIT"
 # Block groups
-block_groups = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_FEDER_BLOCK_GROUP"
+block_groups = fr"{sde_conn}\GIS_FEDER_BLOCK_GROUP"
 
 
 # --- Paths ---
-in_fc    = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_PARCE_CENTR"
+in_fc    = fr"{sde_conn}\IPLS.GIS_PARCE_CENTR"
 
-out_gdb  = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_gdb  = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name = "Parcel_Centroids_2025"
 out_fc   = os.path.join(out_gdb, out_name)
 
@@ -57,7 +57,7 @@ print(f"Done at {now}. Wrote: {out_fc}")
 
 ### Block groups------------------------------------------------------------------------------------------
 in_fc_BG = fr"{sde_conn}\DIT_GIS_IPLS.IPLS.GIS_FEDER_BLOCK_GROUP"
-out_gdb  = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_gdb  = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name_BG = "block_groups_2025"
 out_fc_BG   = os.path.join(out_gdb, out_name_BG)
 
@@ -90,9 +90,9 @@ print(f"Done at {now}. Wrote: {out_fc_BG}")
 
 
 ### Housing Units -------------------------------------------------------------------------------------------
-sde_conn = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
+sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\SQLServer-pgis-DIT_GIS_IPLS.sde"
 schema_tbl = "DIT_GIS_IPLS.IPLS.IPLS_CURRE_HOUSI_UNIT"
-out_gdb   = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+out_gdb   = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name  = "Housing_Units_2025"
 
 arcpy.env.overwriteOutput = True
@@ -119,7 +119,7 @@ print(f"Done at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}. Wrote: {out_tbl}
 
 
 ### Add Lat and Lon to parcel centroids ------------------------------------------------------------------------------
-fc1 = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb\Parcel_Centroids_2025"
+fc1 = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb\Parcel_Centroids_2025"
 
 arcpy.env.overwriteOutput = True
 
@@ -145,7 +145,7 @@ print("Done. lon/lat populated in NAD83 decimal degrees.")
 
 ### Join parcel centroids to housing units using PIN, keep structure of housing unit table------------------------------------
 
-gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+gdb = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 arcpy.env.workspace = gdb
 arcpy.env.overwriteOutput = True
 
@@ -185,7 +185,7 @@ print(f"Done. Wrote: {out_points}")
 
 
 ### Spatial Join using intersect ------------------------------------------------------------------------
-gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+gdb = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 pts = os.path.join(gdb, "Housing_Units_Points_2025")   # points
 polys = os.path.join(gdb, "block_groups_2025")       # polygons
 
@@ -201,7 +201,7 @@ arcpy.analysis.SpatialJoin(
     match_option="INTERSECT"   # or COMPLETELY_WITHIN, which neglect the boundary points
 )
 
-gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+gdb = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 fc2  = os.path.join(gdb, "Parcel_Housing_withBG_2025")
 
 # ---- List all fields you want ----
@@ -215,7 +215,7 @@ df = pd.DataFrame(rows, columns=fields)
 
 
 ### Handle t speicial cases ----------------------------------------------------------------------------------
-gdb = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
+gdb = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 arcpy.env.workspace = gdb
 arcpy.env.overwriteOutput = True
 
@@ -255,7 +255,7 @@ arcpy.management.Append(inputs=exceptions_fc, target=final_pts, schema_type="NO_
 print("Done. Exceptions manually appended to Parcel_Housing_withBG_2025")
 
 # ---- Write to CSV ---- (optional)
-#out_csv = r"C:\Users\swu001\Documents\ArcGIS\Projects\create_comparison\Parcel_Housing_withBG_2025.csv"
+#out_csv = r"C:\Documents\ArcGIS\Projects\create_comparison\Parcel_Housing_withBG_2025.csv"
 #df.to_csv(out_csv, index=False)
 
 #print(f"Done. Exported {len(df)} rows to {out_csv}")
