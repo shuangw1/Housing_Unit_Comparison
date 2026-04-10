@@ -15,13 +15,13 @@ sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\xxxx.sde"
 # Parcel centroids (feature class inside SDE)
 parcel_centroids = fr"{sde_conn}\GIS_PARCE_CENTR"
 # Housing units table
-housing_units_table = fr"{sde_conn}\IPLS_CURRE_HOUSI_UNIT"
+housing_units_table = fr"{sde_conn}\CURRE_HOUSI_UNIT"
 # Block groups
 block_groups = fr"{sde_conn}\GIS_FEDER_BLOCK_GROUP"
 
 
 # --- Paths ---
-in_fc    = fr"{sde_conn}\IPLS.GIS_PARCE_CENTR"
+in_fc    = fr"{sde_conn}\GIS_PARCE_CENTR"
 
 out_gdb  = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name = "Parcel_Centroids_2025"
@@ -91,7 +91,7 @@ print(f"Done at {now}. Wrote: {out_fc_BG}")
 
 ### Housing Units -------------------------------------------------------------------------------------------
 sde_conn = r"C:\Documents\ArcGIS\Projects\create_comparison\xxxx.sde"
-schema_tbl = "xxxx.IPLS_CURRE_HOUSI_UNIT"
+schema_tbl = "xxxx.CURRE_HOUSI_UNIT"
 out_gdb   = r"C:\Documents\ArcGIS\Projects\create_comparison\create_comparison.gdb"
 out_name  = "Housing_Units_2025"
 
