@@ -1,40 +1,51 @@
-# Housing Unit Spatial Data Processing Workflow
+# Housing Unit Spatial Data Pipeline
 
 ## Overview
 
-This project processes yearly spatial and tabular data from an enterprise GIS source and prepares a consolidated output for analysis.
+Built an automated geospatial data pipeline that transforms yearly enterprise GIS datasets into a standardized, analysis-ready housing dataset.
 
-The workflow extracts source datasets, applies time-based filtering, enriches records with coordinate information, links related datasets through shared identifiers, performs spatial matching against boundary layers, and produces a final analysis-ready dataset.
+The workflow integrates parcel geometry, housing-unit records, coordinate data, and administrative boundary assignments into a single reproducible output. It reduces manual GIS processing, improves consistency across reporting years, and supports downstream analytics, visualization, and operational decision-making.
 
-## What it does
+## Key Capabilities
 
-- Connects to enterprise GIS data sources
-- Filters records for a target year
-- Exports selected spatial and tabular datasets into a local workspace
-- Adds geographic coordinates to parcel-level features
-- Joins parcel-related attributes to housing or unit-level records
-- Converts tabular records into point features
-- Assigns geographic boundary identifiers through spatial matching
-- Handles a small number of manual exception cases
-- Loads the final output into a dataframe for review or export
+* Connects to enterprise spatial and tabular data sources
+* Filters and processes records for a configurable reporting year
+* Extracts required datasets into a structured local workspace
+* Generates geographic coordinates for parcel-level features
+* Joins parcel attributes with housing and unit-level records
+* Converts tabular records into spatial point features
+* Assigns administrative and reporting-area identifiers through spatial joins
+* Applies validation rules and resolves limited exception cases
+* Loads the consolidated output into a Pandas DataFrame for quality review, analysis, or export
+
+## Business Impact
+
+The pipeline replaces a multi-step manual workflow with a repeatable and scalable process. It enables teams to:
+
+* Produce consistent annual housing datasets
+* Reduce data preparation time and human error
+* Compare housing trends across years and geographic areas
+* Support reporting, market analysis, planning, and location-based decision-making
+* Reuse the workflow across different datasets and enterprise GIS environments
 
 ## Output
 
-The result is a cleaned and joined dataset that combines:
-- parcel-based location data
-- unit or housing records
-- geographic boundary assignments
+The final dataset combines:
 
-This output can be used for comparison, reporting, and downstream spatial analysis.
+* Parcel-based location and coordinate data
+* Housing or unit-level attributes
+* Geographic boundary and reporting-area assignments
 
-## Requirements
+The resulting table is ready for statistical analysis, dashboard development, mapping, and other downstream spatial workflows.
 
-- ArcGIS Pro
-- Python
-- `arcpy`
-- `pandas`
-- Access to the required enterprise GIS data sources
+## Technology Stack
 
-## Notes
+* Python
+* ArcPy
+* Pandas
+* ArcGIS Pro
+* Enterprise GIS databases
 
-This repository contains a generalized version of the workflow. Environment-specific connection files, schema names, paths, and other internal configuration details should be supplied locally and are not included here.
+## Repository Notes
+
+This repository contains a generalized and reusable version of the production workflow. Organization-specific database connections, schema names, file paths, credentials, and internal configuration settings are intentionally excluded and must be configured locally.
